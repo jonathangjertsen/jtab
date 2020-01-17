@@ -2,12 +2,12 @@ from jtab import (
     get_empty_grid_string,
     get_notes,
     get_relative_note,
+    get_standard_tuning,
     TabGrid,
-    Tuning,
 )
 
 if __name__ == "__main__":
-    tuning = Tuning(name="E standard", offsets=[5, 5, 5, 4, 5])
+    tuning = get_standard_tuning()
     example = """
     |--------0-------|--------0-------|--------0-------|--------0-------
     |------3---3-----|------3---3-----|------3---3-----|------3---3-----
