@@ -1,8 +1,7 @@
 from collections import namedtuple
-
-TabGrid = namedtuple("TabGrid", "n_bars n_steps_per_bar")
 from typing import List
 
+TabGrid = namedtuple("TabGrid", "n_bars n_steps_per_bar")
 TabNote = namedtuple("TabNote", "bar step string number")
 RelativeNote = namedtuple("RelativeNote", "offset tab_note")
 Tuning = namedtuple("Tuning", "name offsets")
@@ -11,12 +10,14 @@ CHAR_EMPTY = "-"
 CHAR_PIPE = "|"
 CHAR_NEWLINE = "\n"
 
+class ParseError(Exception):
+    pass
+
 def get_empty_grid_string(tab_grid: TabGrid, tuning: Tuning) -> str:
     return CHAR_NEWLINE.join(
         (CHAR_PIPE + CHAR_EMPTY * tab_grid.n_steps_per_bar) * tab_grid.n_bars
-        for string in range(6)
+        for _ in range(len(tuning.offsets) + 1)
     )
-
 
 def get_tab_grid(line: str) -> TabGrid:
     n_bars = line.count(CHAR_PIPE)
@@ -24,8 +25,8 @@ def get_tab_grid(line: str) -> TabGrid:
     for i, char in enumerate(line[first_pipe_i+1:]):
         if char == CHAR_PIPE:
             n_steps_per_bar = i
-            break
-    return TabGrid(n_bars, n_steps_per_bar)
+            return TabGrid(n_bars, n_steps_per_bar)
+    raise ParseError(line)
 
 
 def get_notes(tab: str) -> List[TabNote]:
@@ -58,19 +59,3 @@ def get_absolute_offsets(tuning: Tuning):
 def get_relative_note(tab_note: TabNote, tuning: Tuning):
     absolute_offsets = get_absolute_offsets(tuning)
     return RelativeNote(offset=absolute_offsets[tab_note.string] + tab_note.number, tab_note=tab_note)
-
-
-if __name__ == "__main__":
-    tuning = Tuning(name="E standard", offsets=[5, 5, 5, 4, 5])
-    example = """
-    |--------0-------|--------0-------|--------0-------|--------0-------
-    |------3---3-----|------3---3-----|------3---3-----|------3---3-----
-    |----4-------4---|----6-----------|----4-------4---|----6-----------
-    |--4-----------4-|--4-------------|--4-----------4-|--4-------------
-    |2---------------|2---------------|2---------------|2---------------
-    |----------------|------------2-5-|----------------|------------5-4-
-    """
-
-    print(get_empty_grid_string(TabGrid(n_bars=8, n_steps_per_bar=16), tuning=tuning))
-    for tab_note in get_notes(example):
-        print(get_relative_note(tab_note, tuning))
