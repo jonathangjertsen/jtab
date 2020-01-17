@@ -4,11 +4,13 @@ from typing import List
 TabGrid = namedtuple("TabGrid", "n_bars n_steps_per_bar")
 TabNote = namedtuple("TabNote", "bar step string number")
 RelativeNote = namedtuple("RelativeNote", "offset tab_note")
-Tuning = namedtuple("Tuning", "name offsets")
+Tuning = namedtuple("Tuning", "name root offsets")
 
 CHAR_EMPTY = "-"
 CHAR_PIPE = "|"
 CHAR_NEWLINE = "\n"
+
+MIDI_E2 = 40
 
 class ParseError(Exception):
     pass
@@ -20,7 +22,7 @@ class InconsistentBarWidth(ParseError):
     pass
 
 def get_standard_tuning() -> Tuning:
-    return Tuning(name="E standard", offsets=[5, 5, 5, 4, 5])
+    return Tuning(name="E standard", root=MIDI_E2, offsets=[5, 5, 5, 4, 5])
 
 def get_empty_grid_string(tab_grid: TabGrid, tuning: Tuning) -> str:
     return CHAR_NEWLINE.join(
@@ -90,3 +92,12 @@ def get_absolute_offsets(tuning: Tuning):
 def get_relative_note(tab_note: TabNote, tuning: Tuning):
     absolute_offsets = get_absolute_offsets(tuning)
     return RelativeNote(offset=absolute_offsets[tab_note.string] + tab_note.number, tab_note=tab_note)
+
+def get_relative_notes(tab_notes: List[TabNote], tuning: Tuning):
+    return [get_relative_note(tab_note, tuning) for tab_note in tab_notes]
+
+def get_midi(relative_note: RelativeNote, tuning: Tuning):
+    return tuning.root + relative_note.offset
+
+def get_midis(relative_notes: List[RelativeNote], tuning: Tuning):
+    return [get_midi(relative_note, tuning) for relative_note in relative_notes]
